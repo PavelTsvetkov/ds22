@@ -1,21 +1,22 @@
-#run nltk_download.py before running this for first time
-
-
-import pandas as pd
-import nltk as nl
-from nltk.tokenize import sent_tokenize
-from nltk.tokenize import word_tokenize
+import json
 from nltk.corpus import stopwords
 
-english_stops = set(stopwords.words('english'))
+MIN_WORD_LEN = 3
 
-df = pd.read_csv("C:\\tmp\\dabble\\movies_metadata.csv")
+custom_stopwords = set([',', '.', "'s", ')', '(', '``', "''", '’'])
+
+stopwords = set(stopwords.words('english')).union(custom_stopwords)
 
 
-# Uses this dataset https://www.kaggle.com/rounakbanik/the-movies-dataset
+def genres_to_array(keywords):
+    return ["gen_" + x['name'] for x in keywords]
 
 
-def column_to_set(column):
+def rectify_json(s):
+    return json.loads(s.replace("'", '"'))
+
+
+def column_to_set(df, column):
     all_genres = set()
     for c in df[column]:
         split = c.split(",")
@@ -24,32 +25,12 @@ def column_to_set(column):
     return all_genres
 
 
-word_counts = {}
-
-
-def count_words(words):
+def count_words(words, word_counts):
     for w in words:
         w = w.lower()
-        if (w in english_stops):
+        if (w in stopwords or len(w) < MIN_WORD_LEN):
             continue
         if (not w in word_counts):
             word_counts[w] = 1
         else:
             word_counts[w] = word_counts[w] + 1
-
-
-for overview in df["overview"]:
-    try:
-        if overview is not None:
-            sentences = sent_tokenize(overview);
-            for sentence in sentences:
-                words = word_tokenize(sentence)
-                count_words(words)
-                # print(words)
-        # break
-    except TypeError:
-        print("Cannot tokenize:", overview)
-
-sorted_d = sorted(((value, key) for (key, value) in word_counts.items()), reverse=True)
-
-print(sorted_d[:20])
