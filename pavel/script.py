@@ -68,7 +68,7 @@ train_y = target_Y[:train_size]
 validation_x = input_X[train_size:]
 validation_y = target_Y[train_size:]
 
-rf = MLPClassifier(verbose=True, early_stopping=True)
+rf = MLPClassifier(verbose=True, early_stopping=True,max_iter=10,hidden_layer_sizes=(100,100),tol=0.000001)
 
 print("Fitting forest")
 rf.fit(train_x,train_y)
