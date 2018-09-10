@@ -1,3 +1,4 @@
+import collections
 import json
 from collections import __init__
 
@@ -45,21 +46,26 @@ def count_words(words, word_counts):
 
 
 class FeatureVectorizer(object):
-    def __init__(self, column) -> None:
+    def __init__(self) -> None:
         super().__init__()
 
     def vectorize(self, column):
         pass
 
+    def train(self, column):
+        pass
+
 
 class TFIDFVectorizer(FeatureVectorizer):
-    def __init__(self, column) -> None:
-        super().__init__(column)
+    def __init__(self) -> None:
+        super().__init__()
         self.tfid = TfidfVectorizer(stop_words="english", max_features=5000)
-        self.tfid.fit(column)
 
     def vectorize(self, column):
         return self.tfid.transform(column)
+
+    def train(self, column):
+        self.tfid.fit(column)
 
 
 def detectClasses(df, column=None, prefix=None):
