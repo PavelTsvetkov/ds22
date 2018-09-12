@@ -5,11 +5,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
+from sklearn.tree import ExtraTreeClassifier
+
 import pavel.utils as u
 from pavel.utils import TFIDFVectorizer, BagOfWordsVectorizer
 
 # ------------------- Configuration Section ---------------
-show_confusion_matr = False
+show_confusion_matr = True
 
 FEATURE_COLUMN = "overview"
 CLASS_PREFIX = "gen_"
@@ -18,8 +20,9 @@ pre_process = u.pre_process
 detectClasses = u.detectClasses
 extract_classes = u.extract_classes
 
-# classifier = MLPClassifier(verbose=True, early_stopping=True, max_iter=10, hidden_layer_sizes=(100, 100), tol=0.000001)  #F1=0.63
-classifier = RandomForestClassifier()  # F1=0.93
+classifier = MLPClassifier(verbose=True, early_stopping=True, max_iter=10, hidden_layer_sizes=(100, 100), tol=0.000001)  #F1=0.50
+# classifier = RandomForestClassifier(max_depth=1000,n_jobs=4,n_estimators=20)  # F1=0.30
+# classifier = ExtraTreeClassifier(max_depth=1000)  # F1=0.32
 # classifier = GaussianNB() #not working with simultaneous multiclass
 # vectorizer = TFIDFVectorizer(mx_features=10000)
 vectorizer = BagOfWordsVectorizer(mx_features=10000)
@@ -52,10 +55,11 @@ print("Extracting train classes")
 train_classes, train_y = extract_classes(train, prefx=CLASS_PREFIX, classes=None)
 
 print("Vectorizing test input")
-test_x = vectorizer.vectorize(train[FEATURE_COLUMN])
+test_x = vectorizer.vectorize(test[FEATURE_COLUMN])
+print("Test shape:", test_x.shape)
 
 print("Extracting test classes")
-tmp_classes, test_y = extract_classes(train, prefx=CLASS_PREFIX, classes=None)
+tmp_classes, test_y = extract_classes(test, prefx=CLASS_PREFIX, classes=None)
 
 print("Training classifier")
 classifier.fit(train_x.toarray(), train_y)
@@ -71,3 +75,9 @@ for i, c in enumerate(train_classes):
         print(conf_matr)
 
 print("Total F1 score:", f1_score(test_y, pred_y, average='micro'))
+
+features=classifier.feature_importances_
+words=vectorizer.vec.vocabulary_
+
+sorted_w=sorted(zip(features,words),reverse=True,key=lambda item: item[0])
+print(sorted_w[:10])
