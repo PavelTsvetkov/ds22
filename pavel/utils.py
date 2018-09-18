@@ -140,10 +140,13 @@ class SequenceVectorizer(FeatureVectorizer):
 
     def register_words(self, column):
         allwords = {}
+        maxLength = 0
         for item in column:
-            for token in token_gen(item):
+            for i, token in enumerate(token_gen(item)):
+                maxLength = max(maxLength, i)
                 if not (token in allwords):
                     allwords[token] = len(allwords)
+        print("MaxLen", maxLength)
         return allwords
 
     def load_from_file(self):

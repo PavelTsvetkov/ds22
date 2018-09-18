@@ -1,0 +1,5 @@
+DABBLE_VOCAB = "C:\\tmp\\dabble\\vocab.dic"
+SAVED_MODEL = "C:\\tmp\\dabble\\rnn_model.hdf"
+TRAINSET_FILE = "C:\\tmp\\dabble\\trainset.bin"
+MOVIES_METADATA_CSV = "C:\\tmp\\dabble\\movies_metadata.csv"
+NUMPY_DATASET = "C:\\tmp\\dabble\\numpy_data.npz"
