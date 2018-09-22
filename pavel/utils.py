@@ -10,6 +10,7 @@ from nltk.tokenize import sent_tokenize
 from nltk.tokenize import word_tokenize
 import pickle as pic
 import os
+import gensim
 
 MIN_WORD_LEN = 3
 
@@ -79,6 +80,26 @@ def count_occurences(word, list):
 
 
 keywords = set(["EOS", "UNK"])
+
+
+class GensimVectorizer(FeatureVectorizer):
+
+    def __init__(self, model_file, maxLen=300) -> None:
+        super().__init__()
+        self.maxLen = maxLen
+        self.mdl = gensim.models.KeyedVectors.load_word2vec_format(model_file, binary=True)
+
+    def vectorize(self, column):
+        result = np.full((len(column), self.maxLen, self.mdl.vector_size), 0)
+        for i, item in enumerate(column):
+            for k, token in enumerate(token_gen(item)):
+                if token in self.mdl:
+                    result[i, k] = self.mdl[token]
+
+        return result
+
+    def train(self, column):
+        pass
 
 
 class SequenceVectorizer(FeatureVectorizer):
@@ -188,7 +209,7 @@ def detectClasses(df, column=None, prefix=None):
     tmp = df[column].apply(genres_to_array)
     data3 = tmp.apply(collections.Counter)
     tmpDF = pd.DataFrame.from_records(data3).fillna(value=0)
-    return pd.concat([df, tmpDF], axis=1)
+    return pd.concat([df, tmpDF], axis=1), len(tmpDF.columns)
 
 
 def pre_process(df):
@@ -205,3 +226,35 @@ def extract_classes(data, prefx, classes):
     else:
         cols = [col for col in data.columns if col.startswith(prefx)]
     return cols, data.as_matrix(columns=cols)
+
+
+class TrainingGenerator(object):
+    def __init__(self, maxLen=300, model_file=None) -> None:
+        super().__init__()
+        self.maxLen = maxLen
+        self.mdl = gensim.models.KeyedVectors.load(model_file)
+        self.vector_size = self.mdl.vector_size
+
+    def generate(self, dataFrame, text_column, Y_prefix, batch_size, Y_classes=None):
+        while True:
+            batch = dataFrame.sample(n=batch_size)
+            tmp, batch_y = extract_classes(batch, Y_prefix, Y_classes)
+
+            column = batch[text_column]
+
+            batch_x = np.full((len(column), self.maxLen, self.mdl.vector_size + 1), 0.0)
+            for i, item in enumerate(column):
+                max_k = 0;
+                for k, token in enumerate(token_gen(item)):
+                    max_k = k
+                    if token in self.mdl:
+                        batch_x[i, k, 0:self.mdl.vector_size] = self.mdl[token]
+                    else:
+                        batch_x[i, k, self.mdl.vector_size] = 1.0
+                batch_x[i, self.maxLen-max_k:self.maxLen] = batch_x[i, 0:max_k]
+                batch_x[i, 0:self.maxLen-max_k] = 0.0
+
+            yield batch_x, batch_y
+
+    def generate_balanced(self, dataFrame, text_column, Y_prefix, batch_size, Y_classes):
+        pass

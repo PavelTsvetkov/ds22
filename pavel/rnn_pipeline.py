@@ -10,6 +10,8 @@ from sklearn.tree import ExtraTreeClassifier
 from keras.callbacks import ModelCheckpoint, TensorBoard
 from keras.layers import Dense, Activation, Dropout, Embedding, LSTM, GRU
 from keras.models import Sequential
+
+from pavel.keras_utils import f1
 from pavel.rnn_constants import *
 
 import pavel.utils as u
@@ -37,7 +39,7 @@ print("Preprocessing")
 dataset = pre_process(dataset)  # lower case, cleanse, etc.
 
 print("Detecting classes")
-dataset = detectClasses(dataset, column=CLASS_COLUMN, prefix=CLASS_PREFIX)  # generates new columns, one per class
+dataset,class_count = detectClasses(dataset, column=CLASS_COLUMN, prefix=CLASS_PREFIX)  # generates new columns, one per class
 
 print("Shuffling")
 dataset = dataset.sample(frac=1)  # shuflle
@@ -85,7 +87,7 @@ mdl.add(GRU(32,activation="relu"))
 
 mdl.add(Dense(train_y.shape[1], activation="sigmoid"))
 
-mdl.compile(loss='mean_squared_error', optimizer='rmsprop', metrics=["accuracy"])
+mdl.compile(loss='mean_squared_error', optimizer='rmsprop', metrics=[f1])
 
 print(mdl.input_shape)
 mdl.summary()

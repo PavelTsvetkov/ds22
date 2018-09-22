@@ -37,7 +37,7 @@ print("Preprocessing")
 dataset = pre_process(dataset)  # lower case, cleanse, etc.
 
 print("Detecting classes")
-dataset = detectClasses(dataset, column=CLASS_COLUMN, prefix=CLASS_PREFIX)  # generates new columns, one per class
+dataset,class_count = detectClasses(dataset, column=CLASS_COLUMN, prefix=CLASS_PREFIX)  # generates new columns, one per class
 
 print("Shuffling")
 dataset = dataset.sample(frac=1)  # shuflle
