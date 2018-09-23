@@ -1,4 +1,5 @@
 import pandas as pd
+from nltk import PorterStemmer
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, VotingClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
@@ -25,8 +26,8 @@ extract_classes = u.extract_classes
 # classifier = RandomForestClassifier(max_depth=1000,n_jobs=4,n_estimators=20)  # F1=0.30
 classifier = ExtraTreeClassifier(max_depth=1000)  # F1=0.32
 # classifier = GaussianNB() #not working with simultaneous multiclass
-vectorizer = TFIDFVectorizer(mx_features=10000, ngram_range=(1, 2))
-# vectorizer = BagOfWordsVectorizer(mx_features=None, n_gram_range=(1, 1), minDf=10, maxDF=0.98)
+# vectorizer = TFIDFVectorizer(mx_features=10000, ngram_range=(1, 2), stemmer=PorterStemmer())
+vectorizer = BagOfWordsVectorizer(mx_features=None, n_gram_range=(1, 1), minDf=10, maxDF=0.98, stemmer=PorterStemmer())
 
 # ------------------- Configuration Section ---------------
 
