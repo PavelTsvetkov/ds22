@@ -87,6 +87,9 @@ class FeatureVectorizer(object):
     def train(self, column):
         pass
 
+    def getVocabulary(self):
+        pass
+
 
 def count_occurences(word, list):
     i = 0
@@ -203,15 +206,18 @@ class SequenceVectorizer(FeatureVectorizer):
 
 
 class TFIDFVectorizer(FeatureVectorizer):
-    def __init__(self, mx_features=5000) -> None:
+    def __init__(self, mx_features=5000, ngram_range=(1, 1)) -> None:
         super().__init__()
-        self.tfid = TfidfVectorizer(stop_words="english", max_features=mx_features)
+        self.tfid = TfidfVectorizer(stop_words="english", max_features=mx_features, ngram_range=ngram_range)
 
     def vectorize(self, column):
         return self.tfid.transform(column)
 
     def train(self, column):
         self.tfid.fit(column)
+
+    def getVocabulary(self):
+        return self.tfid.vocabulary_
 
 
 class BagOfWordsVectorizer(FeatureVectorizer):
@@ -226,6 +232,9 @@ class BagOfWordsVectorizer(FeatureVectorizer):
 
     def train(self, column):
         self.vec.fit(column)
+
+    def getVocabulary(self):
+        return self.vec.vocabulary_
 
 
 def detectClasses(df, column=None, prefix=None):
