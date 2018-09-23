@@ -8,7 +8,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import ExtraTreeClassifier
 from keras.callbacks import ModelCheckpoint, TensorBoard
-from keras.layers import Dense, Activation, Dropout, Embedding, LSTM, GRU
+from keras.layers import Dense, Activation, Dropout, Embedding, LSTM, GRU, BatchNormalization
 from keras.models import Sequential
 
 from pavel.keras_utils import f1
@@ -39,7 +39,8 @@ print("Preprocessing")
 dataset = pre_process(dataset)  # lower case, cleanse, etc.
 
 print("Detecting classes")
-dataset,class_count = detectClasses(dataset, column=CLASS_COLUMN, prefix=CLASS_PREFIX)  # generates new columns, one per class
+dataset, class_count = detectClasses(dataset, column=CLASS_COLUMN,
+                                     prefix=CLASS_PREFIX)  # generates new columns, one per class
 
 print("Shuffling")
 dataset = dataset.sample(frac=1)  # shuflle
@@ -83,11 +84,14 @@ np.savez_compressed(NUMPY_DATASET, train_x=train_x, train_y=train_y, test_x=test
 
 mdl = Sequential()
 mdl.add(Embedding((len(vectorizer.vocab) + 1), 300, input_length=vectorizer.maxLen))
-mdl.add(GRU(32,activation="relu"))
-
+# mdl.add(BatchNormalization())
+mdl.add(LSTM(50, activation="tanh", recurrent_activation="tanh",bias_initializer='glorot_uniform'))
+mdl.add(BatchNormalization())
+mdl.add(Dense(100, activation="relu"))
+mdl.add(BatchNormalization())
 mdl.add(Dense(train_y.shape[1], activation="sigmoid"))
 
-mdl.compile(loss='mean_squared_error', optimizer='rmsprop', metrics=[f1])
+mdl.compile(loss='binary_crossentropy', optimizer='adam', metrics=[f1])
 
 print(mdl.input_shape)
 mdl.summary()

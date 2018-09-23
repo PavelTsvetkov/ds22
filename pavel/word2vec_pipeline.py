@@ -31,7 +31,7 @@ extract_classes = u.extract_classes
 only_classes = None# ["Drama"]
 
 # generator = TrainingGenerator(maxLen=140, model_file="C:\\tmp\\dabble\\GoogleNews-vectors-negative300.bin")
-generator = TrainingGenerator(maxLen=140, model_file="C:\\tmp\\dabble\\GoogleNews-kvectors.bin")
+generator = TrainingGenerator(maxLen=140, model_file="C:\\tmp\\dabble\\GoogleNews-kvectors.bin", synonim_file="C:\\tmp\\dabble\\custom_synonyms.txt")
 
 # ------------------- Configuration Section ---------------
 
@@ -69,7 +69,7 @@ mdl.add(Dense(100, activation="selu"))
 mdl.add(BatchNormalization())
 mdl.add(Dense(class_count, activation="sigmoid"))
 
-mdl.compile(loss='binary_crossentropy', optimizer='adam', metrics=[f1,"accuracy"])
+mdl.compile(loss='binary_crossentropy', optimizer='nadam', metrics=[f1,"accuracy"])
 
 print(mdl.input_shape)
 mdl.summary()

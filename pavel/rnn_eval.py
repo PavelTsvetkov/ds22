@@ -3,6 +3,7 @@ import math
 import numpy as np
 from sklearn.metrics import f1_score
 
+from pavel.keras_utils import f1
 from pavel.rnn_constants import *
 from keras.models import load_model
 
@@ -16,7 +17,7 @@ train_x = dataset["train_x"]
 train_y = dataset["train_y"]
 
 print("Loading model")
-mdl = load_model(SAVED_MODEL)
+mdl = load_model(SAVED_MODEL, custom_objects={"f1": f1})
 
 print("Compiling")
 mdl.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=["accuracy"])
