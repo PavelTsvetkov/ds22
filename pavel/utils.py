@@ -216,9 +216,10 @@ class TFIDFVectorizer(FeatureVectorizer):
 
 class BagOfWordsVectorizer(FeatureVectorizer):
 
-    def __init__(self, mx_features=5000, minDf=40, maxDf=0.01) -> None:
+    def __init__(self, mx_features=5000, minDf=40, maxDf=0.01, n_gram_range=(1, 1), maxDF=0.98) -> None:
         super().__init__()
-        self.vec = CountVectorizer(stop_words="english", max_features=mx_features, min_df=minDf, max_df=maxDf)
+        self.vec = CountVectorizer(stop_words="english", ngram_range=n_gram_range, max_features=mx_features,
+                                   min_df=minDf, max_df=maxDf)
 
     def vectorize(self, column):
         return self.vec.transform(column)
