@@ -21,13 +21,14 @@ pre_process = u.pre_process
 detectClasses = u.detectClasses
 extract_classes = u.extract_classes
 
-# classifier = MLPClassifier(verbose=True, early_stopping=True, max_iter=10, hidden_layer_sizes=(300, 300),
-#                            tol=0.000001)  # F1=0.50
-# classifier = RandomForestClassifier(max_depth=1000,n_jobs=4,n_estimators=20)  # F1=0.30
-classifier = ExtraTreeClassifier(max_depth=1000)  # F1=0.32
+classifier = MLPClassifier(verbose=True, early_stopping=True, max_iter=10, hidden_layer_sizes=(300, 300),
+                           tol=0.000001)  # F1=0.50
+# classifier = RandomForestClassifier(max_depth=3000, n_jobs=4, n_estimators=20)  # F1=0.30
+# classifier = ExtraTreeClassifier(max_depth=1000)  # F1=0.32
 # classifier = GaussianNB() #not working with simultaneous multiclass
-# vectorizer = TFIDFVectorizer(mx_features=10000, ngram_range=(1, 2), stemmer=PorterStemmer())
-vectorizer = BagOfWordsVectorizer(mx_features=None, n_gram_range=(1, 1), minDf=10, maxDF=0.98, stemmer=PorterStemmer())
+vectorizer = TFIDFVectorizer(mx_features=None, ngram_range=(1, 2), minDf=10, maxDF=0.98,
+                             token_transformer=PorterStemmer().stem)
+# vectorizer = BagOfWordsVectorizer(mx_features=None, n_gram_range=(1, 2), minDf=10, maxDF=0.98, token_transformer=PorterStemmer().stem)
 
 # ------------------- Configuration Section ---------------
 

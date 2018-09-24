@@ -70,13 +70,13 @@ def count_words_in_column(column):
     return result
 
 
-def token_gen(strng, stemmer=None):
+def token_gen(strng, transformer=None):
     sentences = sent_tokenize(strng)
     for sentence in sentences:
         for word in word_tokenize(sentence):
             if not (word in stopwords or len(word) < MIN_WORD_LEN):
-                if stemmer is not None:
-                    yield stemmer.stem(word)
+                if transformer is not None:
+                    yield transformer(word)
                 else:
                     yield word
         yield "EOS"
@@ -87,9 +87,9 @@ def tokenize(doc, stemmer=None):
 
 
 class FeatureVectorizer(object):
-    def __init__(self, stemmer=None) -> None:
+    def __init__(self, token_transformer=None) -> None:
         super().__init__()
-        self.stemmer = stemmer
+        self.token_transformer = token_transformer
 
     def vectorize(self, column):
         pass
@@ -114,15 +114,15 @@ keywords = set(["EOS", "UNK"])
 
 class GensimVectorizer(FeatureVectorizer):
 
-    def __init__(self, model_file, maxLen=300, stemmer=None) -> None:
-        super().__init__(stemmer)
+    def __init__(self, model_file, maxLen=300, token_transformer=None) -> None:
+        super().__init__(token_transformer)
         self.maxLen = maxLen
         self.mdl = gensim.models.KeyedVectors.load_word2vec_format(model_file, binary=True)
 
     def vectorize(self, column):
         result = np.full((len(column), self.maxLen, self.mdl.vector_size), 0)
         for i, item in enumerate(column):
-            for k, token in enumerate(token_gen(item, self.stemmer)):
+            for k, token in enumerate(token_gen(item, self.token_transformer)):
                 if token in self.mdl:
                     result[i, k] = self.mdl[token]
 
@@ -134,8 +134,8 @@ class GensimVectorizer(FeatureVectorizer):
 
 class SequenceVectorizer(FeatureVectorizer):
 
-    def __init__(self, file=None, minDf=0.0, maxDf=1.0, maxLen=300, stemmer=None) -> None:
-        super().__init__(stemmer)
+    def __init__(self, file=None, minDf=0.0, maxDf=1.0, maxLen=300, token_transformer=None) -> None:
+        super().__init__(token_transformer)
         self.maxLen = maxLen
         self.maxDf = maxDf
         self.minDf = minDf
@@ -146,7 +146,7 @@ class SequenceVectorizer(FeatureVectorizer):
 
         for i, item in enumerate(column):
             max_k = 0
-            for k, token in enumerate(token_gen(item, self.stemmer)):
+            for k, token in enumerate(token_gen(item, self.token_transformer)):
                 max_k = k
                 if token in self.vocab:
                     idx = self.vocab[token]
@@ -190,7 +190,7 @@ class SequenceVectorizer(FeatureVectorizer):
     def register_word_distribution(self, allwords, column):
         matr = lil_matrix((len(column), len(allwords)))
         for idx, item in enumerate(column):
-            for token in token_gen(item, self.stemmer):
+            for token in token_gen(item, self.token_transformer):
                 matr[idx, allwords[token]] = 1
         return matr
 
@@ -198,7 +198,7 @@ class SequenceVectorizer(FeatureVectorizer):
         allwords = {}
         maxLength = 0
         for item in column:
-            for i, token in enumerate(token_gen(item, self.stemmer)):
+            for i, token in enumerate(token_gen(item, self.token_transformer)):
                 maxLength = max(maxLength, i)
                 if not (token in allwords):
                     allwords[token] = len(allwords)
@@ -216,10 +216,10 @@ class SequenceVectorizer(FeatureVectorizer):
 
 
 class TFIDFVectorizer(FeatureVectorizer):
-    def __init__(self, mx_features=5000, ngram_range=(1, 1), stemmer=None) -> None:
-        super().__init__(stemmer)
+    def __init__(self, mx_features=5000, ngram_range=(1, 1), token_transformer=None, minDf=40, maxDF=0.98) -> None:
+        super().__init__(token_transformer)
         self.tfid = TfidfVectorizer(stop_words="english", max_features=mx_features, ngram_range=ngram_range,
-                                    tokenizer=lambda doc: tokenize(doc, stemmer))
+                                    min_df=minDf, max_df=maxDF, tokenizer=lambda doc: tokenize(doc, token_transformer))
 
     def vectorize(self, column):
         return self.tfid.transform(column)
@@ -233,10 +233,10 @@ class TFIDFVectorizer(FeatureVectorizer):
 
 class BagOfWordsVectorizer(FeatureVectorizer):
 
-    def __init__(self, mx_features=5000, minDf=40, n_gram_range=(1, 1), maxDF=0.98, stemmer=None) -> None:
-        super().__init__(stemmer)
+    def __init__(self, mx_features=5000, minDf=40, n_gram_range=(1, 1), maxDF=0.98, token_transformer=None) -> None:
+        super().__init__(token_transformer)
         self.vec = CountVectorizer(stop_words="english", ngram_range=n_gram_range, max_features=mx_features,
-                                   min_df=minDf, max_df=maxDF, tokenizer=lambda doc: tokenize(doc, stemmer))
+                                   min_df=minDf, max_df=maxDF, tokenizer=lambda doc: tokenize(doc, token_transformer))
 
     def vectorize(self, column):
         return self.vec.transform(column)
